@@ -6,7 +6,6 @@ import (
 	"github.com/1ELo/StudyCase_BudgetFLow/internal/domain"
 	"github.com/1ELo/StudyCase_BudgetFLow/internal/shared/response"
 	"github.com/1ELo/StudyCase_BudgetFLow/internal/usecase"
-
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 )
@@ -51,13 +50,14 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		response.ValidationError(c, err.Error())
 		return
 	}
-	accessToken, user, err := h.authUC.Login(c.Request.Context(), input)
+	accessToken, refreshToken, user, err := h.authUC.Login(c.Request.Context(), input)
 	if err != nil {
 		response.Error(c, err)
 		return
 	}
 	response.Success(c, http.StatusOK, "login successful", gin.H{
-		"access_token": accessToken,
+		"access_token":  accessToken,
+		"refresh_token": refreshToken,
 		"user": gin.H{
 			"public_id": user.PublicID, "name": user.Name,
 			"email": user.Email, "role": user.Role,
@@ -74,4 +74,27 @@ func (h *AuthHandler) GetBalance(c *gin.Context) {
 		return
 	}
 	response.Success(c, http.StatusOK, "balance retrieved", balance)
+}
+
+func (h *AuthHandler) RefreshToken(c *gin.Context) {
+	var input domain.RefreshInput
+	if err := c.ShouldBindJSON(&input); err != nil {
+		response.ValidationError(c, "invalid request body")
+		return
+	}
+	if err := h.validate.Struct(input); err != nil {
+		response.ValidationError(c, err.Error())
+		return
+	}
+
+	accessToken, refreshToken, err := h.authUC.RefreshToken(c.Request.Context(), input)
+	if err != nil {
+		response.Error(c, err)
+		return
+	}
+
+	response.Success(c, http.StatusOK, "token refreshed", gin.H{
+		"access_token":  accessToken,
+		"refresh_token": refreshToken,
+	})
 }
