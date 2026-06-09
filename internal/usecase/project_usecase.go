@@ -17,6 +17,8 @@ type ProjectUsecase interface {
 	CreateProject(ctx context.Context, userID int64, input domain.CreateProjectInput) (*domain.Project, error)
 	ListProjects(ctx context.Context, query domain.ProjectListQuery) ([]*domain.Project, int64, error)
 	GetProject(ctx context.Context, publicID string) (*domain.Project, error)
+	DeleteProject(ctx context.Context, userID int64, publicID string) error
+	RestoreProject(ctx context.Context, userID int64, publicID string) error
 }
 
 type projectUsecase struct {
@@ -131,4 +133,47 @@ func (u *projectUsecase) GetProject(ctx context.Context, publicID string) (*doma
 		return nil, apperror.ErrInternal
 	}
 	return project, nil
+}
+
+// DeleteProject soft deletes a project if the user is the owner.
+func (u *projectUsecase) DeleteProject(ctx context.Context, userID int64, publicID string) error {
+	project, err := u.projectRepo.FindByPublicID(ctx, publicID)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return apperror.ErrNotFound
+		}
+		return apperror.ErrInternal
+	}
+
+	if project.ManagerID != userID {
+		return apperror.ErrForbidden // Only the owner can delete
+	}
+
+	if err := u.projectRepo.Delete(ctx, publicID); err != nil {
+		return apperror.ErrInternal
+	}
+
+	return nil
+}
+
+// RestoreProject restores a soft-deleted project.
+func (u *projectUsecase) RestoreProject(ctx context.Context, userID int64, publicID string) error {
+	var project domain.Project
+	err := u.db.WithContext(ctx).Unscoped().Table("projects").Where("public_id = ?", publicID).First(&project).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return apperror.ErrNotFound
+		}
+		return apperror.ErrInternal
+	}
+
+	if project.ManagerID != userID {
+		return apperror.ErrForbidden
+	}
+
+	if err := u.projectRepo.Restore(ctx, publicID); err != nil {
+		return apperror.ErrInternal
+	}
+
+	return nil
 }

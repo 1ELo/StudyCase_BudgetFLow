@@ -44,6 +44,8 @@ func SetupRouter(
 
 			// Projects
 			protected.POST("/projects", middleware.Authorize(domain.RoleManager), projectHandler.CreateProject)
+			protected.DELETE("/projects/:public_id", middleware.Authorize(domain.RoleManager), projectHandler.DeleteProject)
+			protected.POST("/projects/:public_id/restore", middleware.Authorize(domain.RoleManager), projectHandler.RestoreProject)
 			protected.GET("/projects", projectHandler.ListProjects)
 			protected.GET("/projects/:public_id", projectHandler.GetProject)
 
