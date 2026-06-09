@@ -14,6 +14,11 @@ type LoginInput struct {
 	Password string `json:"password" validate:"required"`
 }
 
+// RefreshInput represents the JSON body for refreshing tokens.
+type RefreshInput struct {
+	RefreshToken string `json:"refresh_token" validate:"required"`
+}
+
 // TopupInput represents the JSON body for requesting a budget topup.
 type TopupInput struct {
 	Amount int64 `json:"amount" validate:"required,gt=0"`
