@@ -17,6 +17,8 @@ type ProjectRepository interface {
 	FindByID(ctx context.Context, id int64) (*domain.Project, error)
 	List(ctx context.Context, filter querybuilder.ProjectFilter) ([]*domain.Project, int64, error)
 	DecrementEnvelope(ctx context.Context, projectID int64, amount int64) error
+	Delete(ctx context.Context, publicID string) error
+	Restore(ctx context.Context, publicID string) error
 }
 
 type projectRepository struct {
@@ -114,4 +116,21 @@ func (r *projectRepository) List(ctx context.Context, filter querybuilder.Projec
 	}
 
 	return projects, total, nil
+}
+
+// Delete performs a soft delete on a project.
+func (r *projectRepository) Delete(ctx context.Context, publicID string) error {
+	return r.db.WithContext(ctx).
+		Table("projects").
+		Where("public_id = ?", publicID).
+		Update("deleted_at", gorm.Expr("NOW()")).Error
+}
+
+// Restore removes the soft delete timestamp, restoring the project.
+func (r *projectRepository) Restore(ctx context.Context, publicID string) error {
+	return r.db.WithContext(ctx).
+		Unscoped().
+		Table("projects").
+		Where("public_id = ?", publicID).
+		Update("deleted_at", nil).Error
 }
