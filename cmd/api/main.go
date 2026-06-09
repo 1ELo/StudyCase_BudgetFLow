@@ -5,8 +5,10 @@ import (
 	"log"
 	"os"
 
+	"github.com/1ELo/StudyCase_BudgetFLow/internal/delivery/http"
 	"github.com/1ELo/StudyCase_BudgetFLow/internal/repository"
 	"github.com/1ELo/StudyCase_BudgetFLow/internal/usecase"
+	"github.com/go-playground/validator/v10"
 	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -43,6 +45,9 @@ func main() {
 	}
 	log.Println("Database connected successfully")
 
+	// Validator
+	validate := validator.New()
+
 	// Repositories
 	userRepo := repository.NewUserRepository(db)
 	managerRepo := repository.NewManagerRepository(db)
@@ -59,15 +64,28 @@ func main() {
 	claimUC := usecase.NewClaimUsecase(db, claimRepo, projectRepo, managerRepo, employeeRepo)
 	payoutUC := usecase.NewPayoutUsecase(db, payoutRepo, employeeRepo)
 
-	// TODO Phase 7-8: wire middleware, handlers, and router
-	_ = authUC
-	_ = topupUC
-	_ = projectUC
-	_ = claimUC
-	_ = payoutUC
+	// Handlers
+	authHandler := http.NewAuthHandler(authUC, validate)
+	topupHandler := http.NewTopupHandler(topupUC, validate)
+	projectHandler := http.NewProjectHandler(projectUC, validate)
+	claimHandler := http.NewClaimHandler(claimUC, validate)
+	payoutHandler := http.NewPayoutHandler(payoutUC, validate)
 
+	// Router
+	router := http.SetupRouter(
+		authHandler,
+		topupHandler,
+		projectHandler,
+		claimHandler,
+		payoutHandler,
+	)
+
+	// Start server
 	port := getEnv("APP_PORT", "8080")
-	log.Printf("Usecases initialized. Server wiring pending — port will be %s", port)
+	log.Printf("Server starting on port %s", port)
+	if err := router.Run(":" + port); err != nil {
+		log.Fatalf("Failed to start server: %v", err)
+	}
 }
 
 func getEnv(key, fallback string) string {
