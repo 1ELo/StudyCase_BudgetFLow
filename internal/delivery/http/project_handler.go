@@ -89,3 +89,27 @@ func (h *ProjectHandler) GetProject(c *gin.Context) {
 		"envelope_remaining": project.EnvelopeRemaining, "status": project.Status, "created_at": project.CreatedAt,
 	})
 }
+
+func (h *ProjectHandler) DeleteProject(c *gin.Context) {
+	publicID := c.Param("public_id")
+	userID := c.GetInt64("userID")
+
+	if err := h.projectUC.DeleteProject(c.Request.Context(), userID, publicID); err != nil {
+		response.Error(c, err)
+		return
+	}
+
+	response.Success(c, http.StatusOK, "project deleted successfully", nil)
+}
+
+func (h *ProjectHandler) RestoreProject(c *gin.Context) {
+	publicID := c.Param("public_id")
+	userID := c.GetInt64("userID")
+
+	if err := h.projectUC.RestoreProject(c.Request.Context(), userID, publicID); err != nil {
+		response.Error(c, err)
+		return
+	}
+
+	response.Success(c, http.StatusOK, "project restored successfully", nil)
+}
