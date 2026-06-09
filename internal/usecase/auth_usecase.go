@@ -3,6 +3,7 @@ package usecase
 import (
 	"context"
 	"errors"
+	"time"
 
 	"github.com/1ELo/StudyCase_BudgetFLow/internal/domain"
 	"github.com/1ELo/StudyCase_BudgetFLow/internal/repository"
@@ -16,7 +17,8 @@ import (
 // AuthUsecase defines the business logic interface for authentication.
 type AuthUsecase interface {
 	Register(ctx context.Context, input domain.RegisterInput) (*domain.User, error)
-	Login(ctx context.Context, input domain.LoginInput) (string, *domain.User, error)
+	Login(ctx context.Context, input domain.LoginInput) (string, string, *domain.User, error)
+	RefreshToken(ctx context.Context, input domain.RefreshInput) (string, string, error)
 	GetBalance(ctx context.Context, userID int64, role string) (map[string]interface{}, error)
 }
 
@@ -25,6 +27,7 @@ type authUsecase struct {
 	userRepo     repository.UserRepository
 	managerRepo  repository.ManagerRepository
 	employeeRepo repository.EmployeeRepository
+	sessionRepo  repository.SessionRepository
 }
 
 // NewAuthUsecase creates a new AuthUsecase.
@@ -33,12 +36,14 @@ func NewAuthUsecase(
 	userRepo repository.UserRepository,
 	managerRepo repository.ManagerRepository,
 	employeeRepo repository.EmployeeRepository,
+	sessionRepo repository.SessionRepository,
 ) AuthUsecase {
 	return &authUsecase{
 		db:           db,
 		userRepo:     userRepo,
 		managerRepo:  managerRepo,
 		employeeRepo: employeeRepo,
+		sessionRepo:  sessionRepo,
 	}
 }
 
@@ -105,26 +110,38 @@ func (u *authUsecase) Register(ctx context.Context, input domain.RegisterInput) 
 }
 
 // Login authenticates a user and returns a JWT token.
-func (u *authUsecase) Login(ctx context.Context, input domain.LoginInput) (string, *domain.User, error) {
+func (u *authUsecase) Login(ctx context.Context, input domain.LoginInput) (string, string, *domain.User, error) {
 	user, err := u.userRepo.FindByEmail(ctx, input.Email)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return "", nil, apperror.ErrUnauthorized
+			return "", "", nil, apperror.ErrUnauthorized
 		}
-		return "", nil, apperror.ErrInternal
+		return "", "", nil, apperror.ErrInternal
 	}
 
 	if !hash.Compare(input.Password, user.Password) {
-		return "", nil, apperror.ErrUnauthorized
+		return "", "", nil, apperror.ErrUnauthorized
 	}
 
-	accessToken, err := token.GenerateToken(user.ID, user.PublicID.String(), string(user.Role))
+	accessToken, refreshToken, err := token.GenerateTokens(user.ID, user.PublicID.String(), string(user.Role))
 	if err != nil {
-		return "", nil, apperror.ErrInternal
+		return "", "", nil, apperror.ErrInternal
+	}
+
+	// Store session
+	session := &domain.Session{
+		ID:           uuid.New(),
+		UserID:       user.ID,
+		RefreshToken: refreshToken,
+		IsBlocked:    false,
+		ExpiresAt:    time.Now().Add(168 * time.Hour), // 7 days (should ideally come from env)
+	}
+	if err := u.sessionRepo.CreateSession(ctx, session); err != nil {
+		return "", "", nil, apperror.ErrInternal
 	}
 
 	user.Password = ""
-	return accessToken, user, nil
+	return accessToken, refreshToken, user, nil
 }
 
 // GetBalance returns the balance for the authenticated user based on their role.
@@ -162,4 +179,64 @@ func (u *authUsecase) GetBalance(ctx context.Context, userID int64, role string)
 	default:
 		return nil, apperror.ErrForbidden
 	}
+}
+
+// RefreshToken validates a refresh token, rotates it, and returns a new token pair.
+func (u *authUsecase) RefreshToken(ctx context.Context, input domain.RefreshInput) (string, string, error) {
+	// Find session by refresh token
+	var session domain.Session
+	err := u.db.WithContext(ctx).Table("sessions").Where("refresh_token = ?", input.RefreshToken).First(&session).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return "", "", apperror.ErrUnauthorized // Invalid token
+		}
+		return "", "", apperror.ErrInternal
+	}
+
+	// Check if session is blocked (Token Rotation Security mechanism)
+	// If a blocked session's token is used, someone is trying to reuse an old token.
+	if session.IsBlocked {
+		return "", "", apperror.ErrUnauthorized
+	}
+
+	// Check if expired
+	if time.Now().After(session.ExpiresAt) {
+		return "", "", apperror.ErrUnauthorized
+	}
+
+	// Get user
+	user, err := u.userRepo.FindByID(ctx, session.UserID)
+	if err != nil {
+		return "", "", apperror.ErrInternal
+	}
+
+	// Generate new tokens
+	accessToken, newRefreshToken, err := token.GenerateTokens(user.ID, user.PublicID.String(), string(user.Role))
+	if err != nil {
+		return "", "", apperror.ErrInternal
+	}
+
+	// Rotate token securely using a transaction
+	err = u.db.Transaction(func(tx *gorm.DB) error {
+		// Block the old session
+		if err := tx.Table("sessions").Where("id = ?", session.ID).Update("is_blocked", true).Error; err != nil {
+			return err
+		}
+
+		// Create new session
+		newSession := &domain.Session{
+			ID:           uuid.New(),
+			UserID:       user.ID,
+			RefreshToken: newRefreshToken,
+			IsBlocked:    false,
+			ExpiresAt:    time.Now().Add(168 * time.Hour),
+		}
+		return tx.Table("sessions").Create(newSession).Error
+	})
+
+	if err != nil {
+		return "", "", apperror.ErrInternal
+	}
+
+	return accessToken, newRefreshToken, nil
 }
