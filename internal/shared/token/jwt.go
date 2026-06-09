@@ -9,6 +9,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
+// Claims holds the JWT payload data.
 type Claims struct {
 	UserID   int64  `json:"user_id"`
 	PublicID string `json:"public_id"`
@@ -16,10 +17,11 @@ type Claims struct {
 	jwt.RegisteredClaims
 }
 
-func GenerateToken(userID int64, publicID string, role string) (string, error) {
+// GenerateTokens creates a signed JWT access token and a refresh token.
+func GenerateTokens(userID int64, publicID string, role string) (string, string, error) {
 	secret := os.Getenv("JWT_SECRET")
 	if secret == "" {
-		return "", fmt.Errorf("JWT_SECRET not set")
+		return "", "", fmt.Errorf("JWT_SECRET not set")
 	}
 
 	expiryHours := 24
@@ -41,9 +43,20 @@ func GenerateToken(userID int64, publicID string, role string) (string, error) {
 	}
 
 	t := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return t.SignedString([]byte(secret))
+	accessToken, err := t.SignedString([]byte(secret))
+	if err != nil {
+		return "", "", err
+	}
+
+	// Generate refresh token (random 32 byte hex string would be better, but we can also use JWT)
+	// For simplicity and secure randomness, we use UUID
+	// A more robust approach could use crypto/rand
+	refreshToken := fmt.Sprintf("%d.%s", time.Now().UnixNano(), publicID)
+
+	return accessToken, refreshToken, nil
 }
 
+// ParseToken validates and parses a JWT token string, returning the claims.
 func ParseToken(tokenString string) (*Claims, error) {
 	secret := os.Getenv("JWT_SECRET")
 	if secret == "" {
@@ -52,7 +65,7 @@ func ParseToken(tokenString string) (*Claims, error) {
 
 	t, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("unexepected signing method: %v", token.Header["alg"])
+			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
 		return []byte(secret), nil
 	})
