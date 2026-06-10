@@ -45,6 +45,19 @@ jobs:
     - name: Run unit tests
       run: make test
 
+    - name: Run database migrations
+      env:
+        DB_HOST: localhost
+        DB_PORT: 5432
+        DB_USER: postgres
+        DB_PASSWORD: postgres
+        DB_NAME: budgetflow
+        DB_SSLMODE: disable
+      run: |
+        curl -L https://github.com/golang-migrate/migrate/releases/download/v4.17.0/migrate.linux-amd64.tar.gz | tar xvz
+        sudo mv migrate /usr/local/bin/migrate
+        make migrate-up
+
     - name: Run integration tests
       env:
         # These variables tell the tests how to connect to the service container
