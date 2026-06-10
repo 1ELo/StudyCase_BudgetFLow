@@ -100,11 +100,11 @@ http://localhost:8080/api/v1
 ## Running Tests
 
 ```bash
-# Run all tests
+# Run unit tests only (Does not require database)
 make test
 
-# Run specific test
-go test ./internal/usecase/... -v -run TestReviewClaim
+# Run integration & concurrent tests (Requires running PostgreSQL)
+make test-integration
 ```
 
 ## Project Structure

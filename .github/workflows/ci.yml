@@ -42,7 +42,10 @@ jobs:
     - name: Run go vet
       run: go vet ./...
 
-    - name: Run tests
+    - name: Run unit tests
+      run: make test
+
+    - name: Run integration tests
       env:
         # These variables tell the tests how to connect to the service container
         DB_HOST: localhost
@@ -51,4 +54,4 @@ jobs:
         DB_PASSWORD: postgres
         DB_NAME: budgetflow
         DB_SSLMODE: disable
-      run: go test ./... -v
+      run: make test-integration
