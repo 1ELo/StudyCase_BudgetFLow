@@ -1,0 +1,1002 @@
+{
+  "info": {
+    "name": "BudgetFlow API Collection",
+    "description": "Complete API collection for BudgetFlow backend study case.\n\nSeeded accounts:\n- Finance: finance@budgetflow.id / Finance123!\n- Manager: manager@budgetflow.id / Manager123!\n- Employee: employee@budgetflow.id / Employee123!",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "https://studycasebudgetflow-production.up.railway.app/api/v1"
+    },
+    {
+      "key": "manager_token",
+      "value": ""
+    },
+    {
+      "key": "employee_token",
+      "value": ""
+    },
+    {
+      "key": "finance_token",
+      "value": ""
+    },
+    {
+      "key": "refresh_token",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "1. AUTH",
+      "item": [
+        {
+          "name": "Register Manager",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/register",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "register"
+              ]
+            },
+            "description": "Register a new manager account. Only 'manager' and 'employee' roles allowed.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"John Manager\",\n  \"email\": \"john.manager@example.com\",\n  \"password\": \"password123\",\n  \"role\": \"manager\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Register Employee",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/register",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "register"
+              ]
+            },
+            "description": "Register a new employee account.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Jane Employee\",\n  \"email\": \"jane.employee@example.com\",\n  \"password\": \"password123\",\n  \"role\": \"employee\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Login as Finance",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Login with seeded finance account. Copy access_token to finance_token variable.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"finance@budgetflow.id\",\n  \"password\": \"Finance123!\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Login as Manager",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Login with seeded manager account. Copy access_token to manager_token variable.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"manager@budgetflow.id\",\n  \"password\": \"Manager123!\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Login as Employee",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Login with seeded employee account. Copy access_token to employee_token variable.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"employee@budgetflow.id\",\n  \"password\": \"Employee123!\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Refresh Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/refresh",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "refresh"
+              ]
+            },
+            "description": "Exchange a refresh token for a new access+refresh token pair. Old refresh token is blocked after use (rotation).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refresh_token\": \"<paste-refresh-token-here>\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Get Balance (Manager)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/me/balance",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "me",
+                "balance"
+              ]
+            },
+            "description": "Returns budget_available and budget_locked for manager.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{manager_token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Balance (Employee)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/me/balance",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "me",
+                "balance"
+              ]
+            },
+            "description": "Returns reimburse_available and reimburse_locked for employee.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{employee_token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. TOPUPS",
+      "item": [
+        {
+          "name": "Create Topup",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/topups",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "topups"
+              ]
+            },
+            "description": "Manager requests a budget top-up. Status: pending. Requires finance approval.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{manager_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 10000000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Review Topup - Approve",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "unique-key-topup-001"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/topups/<topup_public_id>/review",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "topups",
+                "<topup_public_id>",
+                "review"
+              ]
+            },
+            "description": "Finance approves topup. Manager's budget_available increases by amount.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{finance_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"approved\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Review Topup - Reject",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "unique-key-topup-002"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/topups/<topup_public_id>/review",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "topups",
+                "<topup_public_id>",
+                "review"
+              ]
+            },
+            "description": "Finance rejects topup. No balance change.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{finance_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"rejected\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "List My Topups",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/me/topups",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "me",
+                "topups"
+              ]
+            },
+            "description": "Manager lists their own topup history.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{manager_token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. PROJECTS",
+      "item": [
+        {
+          "name": "Create Project",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/projects",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "projects"
+              ]
+            },
+            "description": "Manager opens a project. envelope_total is locked from budget_available to budget_locked.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{manager_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Website Redesign\",\n  \"claim_amount\": 500000,\n  \"envelope_total\": 5000000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "List Projects",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/projects?page=1&limit=10&sort=-created_at",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "projects"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "sort",
+                  "value": "-created_at"
+                }
+              ]
+            },
+            "description": "List projects with pagination and sort.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{manager_token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "List Projects - Filter by Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/projects?status=open&search=website&sort=title",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "projects"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "open"
+                },
+                {
+                  "key": "search",
+                  "value": "website"
+                },
+                {
+                  "key": "sort",
+                  "value": "title"
+                }
+              ]
+            },
+            "description": "Filter projects by status, search by title.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{manager_token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Project Detail",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/projects/<project_public_id>",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "projects",
+                "<project_public_id>"
+              ]
+            },
+            "description": "Get single project by public_id.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{manager_token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Project (Soft Delete)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/projects/<project_public_id>",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "projects",
+                "<project_public_id>"
+              ]
+            },
+            "description": "Soft-delete a project. Only the owning manager can delete. Sets deleted_at timestamp.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{manager_token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Restore Project",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/projects/<project_public_id>/restore",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "projects",
+                "<project_public_id>",
+                "restore"
+              ]
+            },
+            "description": "Restore a soft-deleted project. Only the owning manager can restore.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{manager_token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. CLAIMS",
+      "item": [
+        {
+          "name": "Create Claim",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/projects/<project_public_id>/claims",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "projects",
+                "<project_public_id>",
+                "claims"
+              ]
+            },
+            "description": "Employee submits expense claim to a project. 1 claim per employee per project.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{employee_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"receipt_url\": \"https://storage.example.com/receipts/receipt-001.pdf\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Review Claim - Approve",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "unique-key-claim-001"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/claims/<claim_public_id>/review",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "claims",
+                "<claim_public_id>",
+                "review"
+              ]
+            },
+            "description": "Approve claim (atomic): envelope_remaining -= claim_amount, budget_locked -= claim_amount, reimburse_available += claim_amount.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{finance_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"approved\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Review Claim - Reject",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "unique-key-claim-002"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/claims/<claim_public_id>/review",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "claims",
+                "<claim_public_id>",
+                "review"
+              ]
+            },
+            "description": "Reject claim. No balance change.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{finance_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"rejected\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "List My Claims",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/me/claims",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "me",
+                "claims"
+              ]
+            },
+            "description": "Employee lists their own claims.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{employee_token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. PAYOUTS",
+      "item": [
+        {
+          "name": "Create Payout",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/payouts",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "payouts"
+              ]
+            },
+            "description": "Employee requests payout. reimburse_available -= amount, reimburse_locked += amount.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{employee_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 500000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Review Payout - Complete",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "unique-key-payout-001"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/payouts/<payout_public_id>/review",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "payouts",
+                "<payout_public_id>",
+                "review"
+              ]
+            },
+            "description": "Complete payout: fee = amount * 25 / 1000 (floor), net_amount = amount - fee. reimburse_locked -= amount.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{finance_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"completed\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Review Payout - Fail",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "unique-key-payout-002"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/payouts/<payout_public_id>/review",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "payouts",
+                "<payout_public_id>",
+                "review"
+              ]
+            },
+            "description": "Fail payout: full refund. reimburse_locked -= amount, reimburse_available += amount.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{finance_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"failed\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "List My Payouts",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/payouts",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "payouts"
+              ]
+            },
+            "description": "Employee lists their own payout history.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{employee_token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

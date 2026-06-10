@@ -1,0 +1,250 @@
+### BudgetFlow API Collection
+### Base URL: http://localhost:8080/api/v1
+### Production URL: https://studycasebudgetflow-production.up.railway.app/api/v1
+
+@base_url = https://studycasebudgetflow-production.up.railway.app/api/v1
+@token = <paste-your-token-here>
+
+## ============================================================
+## AUTH
+## ============================================================
+
+### Register Manager
+POST {{base_url}}/auth/register
+Content-Type: application/json
+
+{
+  "name": "John Manager",
+  "email": "john.manager@example.com",
+  "password": "password123",
+  "role": "manager"
+}
+
+###
+
+### Register Employee
+POST {{base_url}}/auth/register
+Content-Type: application/json
+
+{
+  "name": "Jane Employee",
+  "email": "jane.employee@example.com",
+  "password": "password123",
+  "role": "employee"
+}
+
+###
+
+### Login as Finance
+POST {{base_url}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "finance@budgetflow.id",
+  "password": "Finance123!"
+}
+
+###
+
+### Login as Manager
+POST {{base_url}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "manager@budgetflow.id",
+  "password": "Manager123!"
+}
+
+###
+
+### Login as Employee
+POST {{base_url}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "employee@budgetflow.id",
+  "password": "Employee123!"
+}
+
+###
+
+### Refresh Token
+POST {{base_url}}/auth/refresh
+Content-Type: application/json
+
+{
+  "refresh_token": "<paste-your-refresh-token-here>"
+}
+
+###
+
+### Get Balance
+GET {{base_url}}/me/balance
+Authorization: Bearer {{token}}
+
+## ============================================================
+## TOPUPS
+## ============================================================
+
+###
+
+### Create Topup (Manager)
+POST {{base_url}}/topups
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "amount": 10000000
+}
+
+###
+
+### Review Topup - Approve (Finance)
+# Replace <topup_public_id> with actual public_id from create response
+# Idempotency-Key header prevents duplicate processing on retries
+POST {{base_url}}/topups/<topup_public_id>/review
+Content-Type: application/json
+Authorization: Bearer {{token}}
+Idempotency-Key: {{$guid}}
+
+{
+  "status": "approved"
+}
+
+###
+
+### List My Topups (Manager)
+GET {{base_url}}/me/topups
+Authorization: Bearer {{token}}
+
+## ============================================================
+## PROJECTS
+## ============================================================
+
+###
+
+### Create Project (Manager)
+POST {{base_url}}/projects
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "title": "Website Redesign",
+  "claim_amount": 500000,
+  "envelope_total": 5000000
+}
+
+###
+
+### List Projects
+GET {{base_url}}/projects?page=1&limit=10&sort=-created_at
+Authorization: Bearer {{token}}
+
+###
+
+### List Projects with Filter
+GET {{base_url}}/projects?status=open&search=website&sort=title
+Authorization: Bearer {{token}}
+
+###
+
+### Get Project Detail
+# Replace <project_public_id> with actual public_id
+GET {{base_url}}/projects/<project_public_id>
+Authorization: Bearer {{token}}
+
+###
+
+### Delete Project - Soft Delete (Manager)
+# Replace <project_public_id> with actual public_id
+DELETE {{base_url}}/projects/<project_public_id>
+Authorization: Bearer {{token}}
+
+###
+
+### Restore Project (Manager)
+# Replace <project_public_id> with actual public_id
+POST {{base_url}}/projects/<project_public_id>/restore
+Authorization: Bearer {{token}}
+
+## ============================================================
+## CLAIMS
+## ============================================================
+
+###
+
+### Create Claim (Employee)
+# Replace <project_public_id> with actual public_id
+POST {{base_url}}/projects/<project_public_id>/claims
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "receipt_url": "https://storage.example.com/receipts/receipt-001.pdf"
+}
+
+###
+
+### Review Claim - Approve (Finance or Manager)
+# Replace <claim_public_id> with actual public_id
+POST {{base_url}}/claims/<claim_public_id>/review
+Content-Type: application/json
+Authorization: Bearer {{token}}
+Idempotency-Key: {{$guid}}
+
+{
+  "status": "approved"
+}
+
+###
+
+### List My Claims (Employee)
+GET {{base_url}}/me/claims
+Authorization: Bearer {{token}}
+
+## ============================================================
+## PAYOUTS
+## ============================================================
+
+###
+
+### Create Payout (Employee)
+POST {{base_url}}/payouts
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "amount": 500000
+}
+
+###
+
+### Review Payout - Complete (Finance)
+# Replace <payout_public_id> with actual public_id
+POST {{base_url}}/payouts/<payout_public_id>/review
+Content-Type: application/json
+Authorization: Bearer {{token}}
+Idempotency-Key: {{$guid}}
+
+{
+  "status": "completed"
+}
+
+###
+
+### Review Payout - Fail (Finance)
+# Replace <payout_public_id> with actual public_id
+POST {{base_url}}/payouts/<payout_public_id>/review
+Content-Type: application/json
+Authorization: Bearer {{token}}
+Idempotency-Key: {{$guid}}
+
+{
+  "status": "failed"
+}
+
+###
+
+### List My Payouts (Employee)
+GET {{base_url}}/payouts
+Authorization: Bearer {{token}}
