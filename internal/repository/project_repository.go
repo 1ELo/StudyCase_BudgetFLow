@@ -14,6 +14,7 @@ type ProjectRepository interface {
 	WithTx(tx *gorm.DB) ProjectRepository
 	Create(ctx context.Context, p *domain.Project) error
 	FindByPublicID(ctx context.Context, publicID string) (*domain.Project, error)
+	FindByPublicIDUnscoped(ctx context.Context, publicID string) (*domain.Project, error)
 	FindByID(ctx context.Context, id int64) (*domain.Project, error)
 	List(ctx context.Context, filter querybuilder.ProjectFilter) ([]*domain.Project, int64, error)
 	DecrementEnvelope(ctx context.Context, projectID int64, amount int64) error
@@ -45,6 +46,19 @@ func (r *projectRepository) FindByPublicID(ctx context.Context, publicID string)
 	err := r.db.WithContext(ctx).
 		Table("projects").
 		Where("public_id = ? AND deleted_at IS NULL", publicID).
+		First(&project).Error
+	if err != nil {
+		return nil, err
+	}
+	return &project, nil
+}
+
+func (r *projectRepository) FindByPublicIDUnscoped(ctx context.Context, publicID string) (*domain.Project, error) {
+	var project domain.Project
+	err := r.db.WithContext(ctx).
+		Unscoped().
+		Table("projects").
+		Where("public_id = ?", publicID).
 		First(&project).Error
 	if err != nil {
 		return nil, err

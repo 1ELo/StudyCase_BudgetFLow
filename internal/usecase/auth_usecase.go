@@ -184,8 +184,7 @@ func (u *authUsecase) GetBalance(ctx context.Context, userID int64, role string)
 // RefreshToken validates a refresh token, rotates it, and returns a new token pair.
 func (u *authUsecase) RefreshToken(ctx context.Context, input domain.RefreshInput) (string, string, error) {
 	// Find session by refresh token
-	var session domain.Session
-	err := u.db.WithContext(ctx).Table("sessions").Where("refresh_token = ?", input.RefreshToken).First(&session).Error
+	session, err := u.sessionRepo.GetSessionByRefreshToken(ctx, input.RefreshToken)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return "", "", apperror.ErrUnauthorized // Invalid token
@@ -218,8 +217,10 @@ func (u *authUsecase) RefreshToken(ctx context.Context, input domain.RefreshInpu
 
 	// Rotate token securely using a transaction
 	err = u.db.Transaction(func(tx *gorm.DB) error {
+		sessionRepoTx := u.sessionRepo.WithTx(tx)
+
 		// Block the old session
-		if err := tx.Table("sessions").Where("id = ?", session.ID).Update("is_blocked", true).Error; err != nil {
+		if err := sessionRepoTx.BlockSession(ctx, session.ID.String()); err != nil {
 			return err
 		}
 
@@ -231,7 +232,7 @@ func (u *authUsecase) RefreshToken(ctx context.Context, input domain.RefreshInpu
 			IsBlocked:    false,
 			ExpiresAt:    time.Now().Add(168 * time.Hour),
 		}
-		return tx.Table("sessions").Create(newSession).Error
+		return sessionRepoTx.CreateSession(ctx, newSession)
 	})
 
 	if err != nil {
