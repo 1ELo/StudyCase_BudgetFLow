@@ -158,8 +158,7 @@ func (u *projectUsecase) DeleteProject(ctx context.Context, userID int64, public
 
 // RestoreProject restores a soft-deleted project.
 func (u *projectUsecase) RestoreProject(ctx context.Context, userID int64, publicID string) error {
-	var project domain.Project
-	err := u.db.WithContext(ctx).Unscoped().Table("projects").Where("public_id = ?", publicID).First(&project).Error
+	project, err := u.projectRepo.FindByPublicIDUnscoped(ctx, publicID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return apperror.ErrNotFound
